@@ -116,7 +116,7 @@ def download_posts(owner_id, token, max_iter=None, suffix='', save=True):
         posts = get_posts(owner_id, token, 100, i * 100)
         posts = parse_posts(posts['response']['items'], owner_id)
         result_posts.extend(posts)
-        time.sleep(0.25)
+        time.sleep(0.33)
 
     # filterig by date
     min_date = datetime.fromtimestamp(min(result_posts,
@@ -147,8 +147,12 @@ def download_comments(posts, owner_id, token, max_iter=None, suffix='',
 
     j = 0
     for post_id in posts_ids:
-        if j % 20 == 0:
+        if j % 500 == 0:
             logger.info('{:.2f}%'.format(j / len(posts_ids) * 100))
+            if save:
+                filename = comments_path.format(owner_id)
+                with open(filename, 'wb') as f:
+                    pickle.dump(result_comments, f)
         j += 1
 
         comment = get_comments(owner_id, post_id, token, 1)
@@ -156,16 +160,30 @@ def download_comments(posts, owner_id, token, max_iter=None, suffix='',
             comments_count = int(comment['response']['count'])
         except:
             logger.error(comment)
-            return
+            if comment.get('error', {}).get('error_code', 0) == 5:
+                if save:
+                    filename = comments_path.format(owner_id)
+                    with open(filename, 'wb') as f:
+                        pickle.dump(result_comments, f)
+                        logger.info('Temporary saved {} comments'
+                                    .format(len(result_comments)))
+                token, __ = get_auth_params()
+            continue
         iteration = math.ceil(comments_count / 100)
         if max_iter:
             iteration = min(max_iter, iteration)
 
         for i in range(iteration + 1):
-            comments = get_comments(owner_id, post_id, token, 100, i * 100)
-            comments = parse_comments(comments['response']['items'], owner_id)
+            try:
+                comments = get_comments(owner_id, post_id, token, 100, i * 100)
+                comments = parse_comments(comments['response']['items'],
+                                          owner_id)
+            except:
+                logger.error(comments)
+                time.sleep(0.33)
+                continue
             result_comments.extend(comments)
-            time.sleep(0.25)
+            time.sleep(0.33)
 
     if save:
         filename = comments_path.format(owner_id)
