@@ -23,14 +23,18 @@ users_url = "https://api.vk.com/method/users.get?user_ids={}&access_token={}&"\
 auth_url = "https://oauth.vk.com/authorize?client_id={}&scope=wall&"\
            "redirect_uri=https://oauth.vk.com/blank.html&"\
            "display=page&response_type=token"
+friends_url = "https://api.vk.com/method/friends.get?user_id={}&"\
+              "&access_token={}&fields={}&count={}&offset={}&v=5.52"
 user_fields = ['sex', 'bdate', 'universities', 'status',
                'counters', 'occupation', 'relation', 'personal', 'activities',
                'interests', 'music', 'movies', 'books', 'can_see_all_posts',
                'can_see_audio', 'can_write_private_message']
+friend_fields = []
 
 posts_path = 'data/posts_{}.pkl'
 comments_path = 'data/comments_{}.pkl'
 users_path = 'data/users_{}.pkl'
+friends_path = 'data/friends_{}.pkl'
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -75,13 +79,11 @@ def get_auth_params():
 
 
 def get_posts(owner_id, token, count=5, offset=0):
-    # domain - domain of comunity
     r = requests.get(posts_url.format(owner_id, token, count, offset))
     return json.loads(r.text)
 
 
 def get_comments(owner_id, post_id, token, count=5, offset=0):
-    # domain - domain of comunity
     r = requests.get(comments_url.format(owner_id, post_id, token, count,
                                          offset))
     return json.loads(r.text)
@@ -100,6 +102,12 @@ def get_users(user_ids, token, fields):
     return users
 
 
+def get_friends(user_id, token, count=100, offset=0, fields=friend_fields):
+    url = friends_url.format(user_id, token, count, ','.join(fields), offset)
+    r = requests.get(url)
+    return json.loads(r.text)
+
+
 def parse_posts(posts, owner_id):
     return [{'post_id': p['id'], 'text': p['text'],
              'likes': p['likes']['count'],
@@ -113,6 +121,11 @@ def parse_comments(comments, owner_id):
              'reply_to_cid': c.get('reply_to_cid'),
              'attachments': c.get('attachments'),
              'owner_id': owner_id} for c in comments]
+
+
+def parse_friends(friends):
+    return [{'first_name': f['first_name'], 'last_name': f['last_name'],
+             'id': f['id']} for f in friends]
 
 
 def download_posts(owner_id, token, max_iter=None, suffix='', save=True):
@@ -255,6 +268,42 @@ def download_users(comments, token, max_iter=None, suffix='', save=True):
     return result_users
 
 
+def download_friends(user_id, token, max_iter=None, suffix='', save=True):
+    friends_count = 0
+    start_time = time.time()
+
+    logger.info('Downloading friends from {}'.format(user_id))
+    result_friends = []
+    friend = get_friends(user_id, token, 1)
+    try:
+        friends_count = int(friend['response']['count'])
+    except:
+        logger.error(friend)
+        return
+    logger.info('{} total friends'.format(friends_count))
+    iteration = math.ceil(friends_count / 100)
+    if max_iter:
+        iteration = min(max_iter, iteration)
+
+    for i in range(iteration):
+        if i % 1 == 0:
+            logger.info('{:.2f}%'.format(i / iteration * 100))
+        friends = get_friends(user_id, token, 100, i * 100)
+        friends = parse_friends(friends['response']['items'])
+        result_friends.extend(friends)
+        time.sleep(0.33)
+
+    if save:
+        filename = friends_path.format(user_id)
+        with open(filename, 'wb') as f:
+            pickle.dump(result_friends, f)
+
+    logger.info('{} friends of {} added'.format(len(result_friends),
+                user_id))
+    logger.debug('Total time: {} sec'.format(round(time.time() - start_time)))
+    return result_friends
+
+
 def read_posts(owner_id, filename=None):
     if not filename:
         if owner_id:
@@ -291,7 +340,19 @@ def read_users(owner_id, filename=None):
     return users
 
 
-def main():
+def read_friends(user_id, filename=None):
+    if not filename:
+        if user_id:
+            filename = friends_path.format(user_id)
+        else:
+            raise Exception('Wrong arguments')
+    with open(filename, 'rb') as f:
+        friends = pickle.load(f)
+    logger.info('{} friends of {} readed'.format(len(friends), user_id))
+    return friends
+
+
+def community_downloader(owner_id):
     token, user_id = get_saved_auth_params()
     if not token or not user_id:
         token, user_id = get_auth_params()
@@ -319,5 +380,24 @@ def main():
                 continue
     logger.info('Done')
 
+
+def user_downloader(owner_id):
+    token, user_id = get_saved_auth_params()
+    if not token or not user_id:
+        token, user_id = get_auth_params()
+
+    posts = None
+    comments = None
+    if not os.path.exists(posts_path.format(owner_id)):
+        posts = download_posts(owner_id, token)
+    else:
+        posts = read_posts(owner_id)
+    if not os.path.exists(comments_path.format(owner_id)):
+        comments = download_comments(posts, owner_id, token)
+    else:
+        comments = read_comments(owner_id)
+    logger.info('Done')
+
+
 if __name__ == '__main__':
-    main()
+    pass #user_downloader('68095528')
