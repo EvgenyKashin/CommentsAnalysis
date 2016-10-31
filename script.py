@@ -12,6 +12,7 @@ import os
 APP_ID = '5298215'
 AUTH_FILE = 'auth'
 owner_id = '-33041211'
+my_id = '68095528'
 
 posts_url = "https://api.vk.com/method/wall.get?owner_id={}&"\
             "access_token={}&v=5.52&filter=owner&count={}&offset={}"
@@ -35,7 +36,7 @@ posts_path = 'data/posts_{}.pkl'
 comments_path = 'data/comments_{}.pkl'
 users_path = 'data/users_{}.pkl'
 friends_path = 'data/friends_{}.pkl'
-
+frinds_comments_path = 'data/fr_com_{}_{}.pkl'
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -352,6 +353,49 @@ def read_friends(user_id, filename=None):
     return friends
 
 
+def friends_comments(user_id, community_id, save=True):
+    start_time = time.time()
+    logger.info('Searching comments in {} from friends of {}'
+                .format(community_id, user_id))
+
+    friends = read_friends(user_id)
+    comments = read_comments(community_id)
+    users_ids_in_com = set([c['from_id'] for c in comments])
+
+    friends_with_com = []
+    for friend in friends:
+        if friend['id'] in users_ids_in_com:
+            users_com = [c for c in comments if c['from_id'] == friend['id']]
+            friends_with_com.append({'user': friend,
+                                     'comments': users_com})
+
+    if save:
+        filename = frinds_comments_path.format(user_id, community_id)
+        with open(filename, 'wb') as f:
+            pickle.dump(friends_with_com, f)
+
+    logger.info('{} friends commented in this community'
+                .format(len(friends_with_com)))
+    logger.debug('Total time: {} sec'.format(round(time.time() - start_time)))
+    return friends_with_com
+
+
+def read_friends_comments(user_id, community_id, filename=None):
+    if not filename:
+        if user_id and community_id:
+            filename = frinds_comments_path.format(user_id, community_id)
+        else:
+            raise Exception('Wrong arguments')
+    with open(filename, 'rb') as f:
+        friends_comments = pickle.load(f)
+    logger.info('{} friends comments readed'.format(len(friends_comments)))
+    return friends_comments
+
+
+def friends_comments_filter(fr_com, last_name):
+    return [f for f in fr_com if f['user']['last_name']==last_name]
+
+
 def community_downloader(owner_id):
     token, user_id = get_saved_auth_params()
     if not token or not user_id:
@@ -400,4 +444,7 @@ def user_downloader(owner_id):
 
 
 if __name__ == '__main__':
-    pass #user_downloader('68095528')
+    # user_downloader(my_id)
+    # community_downloader(owner_id)
+    # friends_comments(my_id, owner_id)
+    pass
