@@ -396,7 +396,7 @@ def friends_comments_filter(fr_com, last_name):
     return [f for f in fr_com if f['user']['last_name']==last_name]
 
 
-def community_downloader(owner_id):
+def community_downloader(owner_id, with_users=True):
     token, user_id = get_saved_auth_params()
     if not token or not user_id:
         token, user_id = get_auth_params()
@@ -411,7 +411,7 @@ def community_downloader(owner_id):
         comments = download_comments(posts, owner_id, token)
     else:
         comments = read_comments(owner_id)
-    if not os.path.exists(users_path.format(owner_id)):
+    if not os.path.exists(users_path.format(owner_id)) and with_users:
         ok = False
         i = 0
         while not ok:
@@ -445,6 +445,6 @@ def user_downloader(owner_id):
 
 if __name__ == '__main__':
     # user_downloader(my_id)
-    # community_downloader(owner_id)
+    # community_downloader('-65539551', False)
     # friends_comments(my_id, owner_id)
     pass
