@@ -11,7 +11,8 @@ import os
 
 APP_ID = '5298215'
 AUTH_FILE = 'auth'
-owner_id = '-33041211'
+vrn_id = '-33041211'
+spb_id = '-31516466'
 my_id = '68095528'
 
 posts_url = "https://api.vk.com/method/wall.get?owner_id={}&"\
@@ -232,7 +233,8 @@ def download_comments(posts, owner_id, token, max_iter=None, suffix='',
     return result_comments
 
 
-def download_users(comments, token, max_iter=None, suffix='', save=True):
+def download_users(comments, token, owner_id, max_iter=None, suffix='',
+                   save=True):
     start_time = time.time()
     user_ids = list(set([c['from_id'] for c in comments]))
 
@@ -246,13 +248,15 @@ def download_users(comments, token, max_iter=None, suffix='', save=True):
     for i in range(iteration):
         if i % 100 == 0:
             logger.info('{:.2f}%'.format(i / iteration * 100))
-        ids = user_ids[10 * i: 10 * (i + 1)]
         if i == iteration - 1:
             ids = user_ids[10 * i:]
+        else:
+            ids = user_ids[10 * i: 10 * (i + 1)]
         try:
             users = get_users(ids, token, user_fields)
-        except:
+        except Exception as ex:
             time.sleep(20)
+            print(ex)
             logger.info('Second try')
             users = get_users(ids, token, user_fields)
 
@@ -393,7 +397,11 @@ def read_friends_comments(user_id, community_id, filename=None):
 
 
 def friends_comments_filter(fr_com, last_name):
-    return [f for f in fr_com if f['user']['last_name']==last_name]
+    return [f for f in fr_com if f['user']['last_name'] == last_name]
+
+
+def friends_comments_names(fr_com):
+    return [f['user']['last_name'] for f in fr_com]
 
 
 def community_downloader(owner_id, with_users=True):
@@ -418,7 +426,7 @@ def community_downloader(owner_id, with_users=True):
             try:
                 i += 1
                 print("{} try".format(i))
-                download_users(comments, token)
+                download_users(comments, token, owner_id)
                 ok = True
             except:
                 continue
@@ -445,6 +453,6 @@ def user_downloader(owner_id):
 
 if __name__ == '__main__':
     # user_downloader(my_id)
-    # community_downloader('-65539551', False)
+    community_downloader(spb_id, True)
     # friends_comments(my_id, owner_id)
     pass
