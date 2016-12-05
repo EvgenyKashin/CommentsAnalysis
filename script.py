@@ -11,8 +11,12 @@ import os
 
 APP_ID = '5298215'
 AUTH_FILE = 'auth'
+
 vrn_id = '-33041211'
 spb_id = '-31516466'
+ekb_id = '-32182751'
+krd_id = '-33025155'
+nsk_id = '-32258596'
 my_id = '68095528'
 
 posts_url = "https://api.vk.com/method/wall.get?owner_id={}&"\
@@ -453,6 +457,6 @@ def user_downloader(owner_id):
 
 if __name__ == '__main__':
     # user_downloader(my_id)
-    community_downloader(spb_id, True)
+    community_downloader(ekb_id, True)
     # friends_comments(my_id, owner_id)
     pass
