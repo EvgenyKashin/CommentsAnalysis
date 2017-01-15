@@ -456,7 +456,10 @@ def user_downloader(owner_id):
 
 
 if __name__ == '__main__':
-    # user_downloader(my_id)
-    community_downloader(ekb_id, True)
-    # friends_comments(my_id, owner_id)
+    # download_friends(my_id, 'a33dce2957f6f848aa1f8b80a6f366d19bf6f40d3d09e741f92897864692d69a3ad0c3a3ac08027840034')
+    #user_downloader(my_id)
+    # community_downloader(ekb_id, True)
+    # friends_comments(my_id, vrn_id)
+    # read_friends_comments(my_id, vrn_id)
+    # friends_comments('118624220', vrn_id)
     pass
