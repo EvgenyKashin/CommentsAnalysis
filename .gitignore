@@ -90,6 +90,8 @@ ENV/
 
 # Data files
 *.pkl
+!best_comments.pkl
+!av_model.pkl
 *.csv
 *.gz
 
