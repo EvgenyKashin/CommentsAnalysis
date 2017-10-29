@@ -81,7 +81,7 @@ def make_df_balanced(df, by_col):
     return df
 
 
-threshold = 0.493
+threshold = 0.492
 
 av_model = AverageModel([
     LrModelTfidf('lr_tfidf_5k', 5000, penalty='l2', C=0.05),
