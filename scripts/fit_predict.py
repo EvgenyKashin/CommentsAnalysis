@@ -81,16 +81,16 @@ def make_df_balanced(df, by_col):
     return df
 
 
-threshold = 0.492
+threshold = 0.5
 
 av_model = AverageModel([
-    LrModelTfidf('lr_tfidf_5k', 5000, penalty='l2', C=0.05),
+    LrModelTfidf('lr_tfidf_5k', 5000, penalty='l2', C=0.2),
 
-    LrModelCount('lr_count_5k_word_12', 5000, ngram_range=(1, 2), penalty='l2', C=0.05),
-    LrModelCount('lr_count_10k_word_13', 10000, ngram_range=(1, 3), penalty='l2', C=0.05),
+    LrModelCount('lr_count_5k_word_12', 5000, ngram_range=(1, 2), penalty='l2', C=0.2),
+    LrModelCount('lr_count_10k_word_13', 10000, ngram_range=(1, 3), penalty='l2', C=0.2),
 
-    LrModelCount('lr_count_5k_char_23', 5000, 'char', (2, 3), penalty='l2', C=0.05),
-    LrModelCount('lr_count_2k_char_23', 2000, 'char', (2, 3), penalty='l2', C=0.05),
+    LrModelCount('lr_count_5k_char_23', 5000, 'char', (2, 3), penalty='l2', C=0.2),
+    LrModelCount('lr_count_2k_char_23', 2000, 'char', (2, 3), penalty='l2', C=0.2),
 ])
 
 
@@ -106,7 +106,7 @@ def train_model(n_coms=5, train_size=0.9, debug=False):
     additional_comments = comments[[i in additional_ids for i in comments.from_id]]
     train_comments = pd.concat((train_comments.reset_index(drop=True), additional_comments.reset_index(drop=True)))
     test_comments = comments[[i in test_idxs for i in comments.from_id]]
-    train_comments = make_df_balanced(train_comments, 'is_gum')
+    # train_comments = make_df_balanced(train_comments, 'is_gum') because class_weight='balanced'
 
     X_train, X_test = train_comments, test_comments
     y_train, y_test = train_comments.is_gum.values, test_comments.is_gum.values

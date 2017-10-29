@@ -21,8 +21,9 @@ class Model:
 class LrModelCount(Model):
     def __init__(self, name='-', max_features=1000, analyzer='word', ngram_range=(1, 1), penalty='l2', C=1):
         super().__init__(name)
-        self.vectorizer = CountVectorizer(max_features=max_features, analyzer=analyzer, ngram_range=ngram_range)
-        self.model = lm.LogisticRegression(penalty=penalty, C=C)
+        self.vectorizer = CountVectorizer(max_features=max_features, analyzer=analyzer, ngram_range=ngram_range,
+                                          min_df=100)
+        self.model = lm.LogisticRegression(penalty=penalty, C=C, class_weight='balanced', fit_intercept=False)
         self._fitted = False
         
     def fit(self, X, y):
@@ -46,8 +47,8 @@ class LrModelCount(Model):
 class LrModelTfidf(Model):
     def __init__(self, name='-', max_features=1000, penalty='l2', C=1):
         super().__init__(name)
-        self.vectorizer = TfidfVectorizer(max_features=max_features)
-        self.model = lm.LogisticRegression(penalty=penalty, C=C)
+        self.vectorizer = TfidfVectorizer(max_features=max_features, min_df=100)
+        self.model = lm.LogisticRegression(penalty=penalty, C=C, class_weight='balanced', fit_intercept=False)
         self._fitted = False
         
     def fit(self, X, y):
