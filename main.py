@@ -3,6 +3,7 @@ from flask import render_template, jsonify
 import json
 from scripts import fit_predict
 from flask import request
+import os
 
 app = Flask(__name__)
 best_data = fit_predict.load_best_data()
