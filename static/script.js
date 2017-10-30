@@ -88,7 +88,9 @@ $(".col-xs-6 .btn-primary").on("click", function() {
 
 function resultSuccess(data) {
 	if (data) {
-		$(".col-md-12 h3").text(data);
+		$(".col-md-12 h3").text(data[0]);
+		$(".table").html(data[1]);
+		$(".col-md-12 h4").text("Зеленый - больше гуманитарный коммент, красный - технарский");
 	}
 	else {
 		$(".col-md-12 h3").text("Что то пошло не так, попробуйте позже(");
@@ -108,7 +110,7 @@ $("#result").on("click", function() {
 			type: "POST",
 			data: data,
 			contentType: "application/json; charset=utf-8",
-			dataType: "text",
+			dataType: "json",
 			success: resultSuccess,
 			failure: resultFailure
 		};
@@ -128,5 +130,7 @@ $("#restart").on("click", function() {
 		$("#result").removeClass("btn-success");
 		$("#result").addClass("btn-warning");
 		$(".col-md-12 h3").text("");
+		$(".table").html("");
+		$(".col-md-12 h4").text("");
 	}
 });

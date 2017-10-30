@@ -129,7 +129,11 @@ def predict_one_comment(com):
     return av_model.predict_proba(com_df)
 
 
-def predict_comments(coms):
+def predict_comments(coms, with_separate=False):
     coms_df = pd.DataFrame(coms, columns=['text'])
-    score = np.median(av_model.predict_proba(coms_df) > threshold)
-    return score
+    preds = (av_model.predict_proba(coms_df) > threshold).astype(int)
+    score = np.median(preds)
+    if with_separate:
+        return score, preds
+    else:
+        return score
