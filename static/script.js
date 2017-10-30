@@ -55,7 +55,7 @@ $(function() {
 });
 
 // click on next button
-$(".col-xs-4 .btn-primary").on("click", function() {
+$(".col-xs-5 .btn-primary").on("click", function() {
 	nextComment();
 });
 
