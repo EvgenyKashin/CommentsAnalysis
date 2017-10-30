@@ -73,11 +73,11 @@ $(".col-xs-6 .btn-primary").on("click", function() {
 		nextComment();
 		$(".form-control").val("");
 		answers.push(answer);
-		$(".col-md-2 h4").text("Ответов: " + answers.length)
+		$(".col-md-2 h4").text("Ответов: " + answers.length);
 		if (answers.length >= 5) {
 			isReadyToPredict = true;
-			$(".btn-lg").removeClass("btn-warning");
-			$(".btn-lg").addClass("btn-success");
+			$("#result").removeClass("btn-warning");
+			$("#result").addClass("btn-success");
 		}
 		else {
 			isReadyToPredict = false;
@@ -100,7 +100,7 @@ function resultFailure(data) {
 }
 
 // click on result btn
-$(".btn-lg").on("click", function() {
+$("#result").on("click", function() {
 	if (isReadyToPredict) {
 		data = JSON.stringify(answers);
 		var request = {
@@ -113,5 +113,20 @@ $(".btn-lg").on("click", function() {
 			failure: resultFailure
 		};
 		$.ajax(request);
+	}
+});
+
+// click on restart btn
+$("#restart").on("click", function() {
+	nextComment();
+
+	answers = [];
+	$(".col-md-2 h4").text("Ответов: " + answers.length);
+
+	if (isReadyToPredict) {
+		isReadyToPredict = false;
+		$("#result").removeClass("btn-success");
+		$("#result").addClass("btn-warning");
+		$(".col-md-12 h3").text("");
 	}
 });

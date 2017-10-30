@@ -1,13 +1,22 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:og="http://ogp.me/ns#" xmlns:fb="http://ogp.me/ns/fb#">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
+    <link rel="shortcut icon" href="../static/favicon.ico" type="image/x-icon">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Гуманитарии vs Технари">
+    <meta property="og:description" content="Определи тип личности по твоим комментариям!">
+    <meta property="og:url" content="https://comments-analysis.herokuapp.com/">
+    <meta property="og:image" content="https://hsto.org/webt/ii/gi/pj/iigipj5qhjvi7g9ohwjqjjwuvws.jpeg">
+    <meta property="og:image:width" content="650">
+    <meta property="og:image:height" content="619">
+
 
     <title>Гуманитарии vs Технари</title>
 
@@ -29,11 +38,21 @@
   </head>
 
   <body>
+    <script type="text/javascript" src="https://vk.com/js/api/share.js?95" charset="windows-1251"></script>
+    <div id="fb-root"></div>
+    <script>(function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = 'https://connect.facebook.net/ru_RU/sdk.js#xfbml=1&version=v2.10';
+      fjs.parentNode.insertBefore(js, fjs);
+      }(document, 'script', 'facebook-jssdk'));
+    </script>
 
     <div class="container">
       <div class="header">
         <ul class="nav nav-pills pull-right">
-          <li><a href="#">GitHub</a></li>
+          <li><a href="https://github.com/EvgenyKashin/CommentsAnalysis" target="_blank">GitHub</a></li>
         </ul>
         <h3 class="text-muted">Гуманитарии vs Технари</h3>
       </div>
@@ -47,13 +66,13 @@
 
       <div class="container-fluid">
         <div class="row">
-          <div class="col-xs-8 col-md-10">
+          <div class="col-xs-7 col-md-10">
             <h4>Случайный коммент:</h4>
             <blockquote>
               <p>...</p>
             </blockquote>
           </div>
-          <div class="col-xs-4 col-md-2">
+          <div class="col-xs-5 col-md-2">
             <br><br>
             <button type="button" class="btn btn-primary">Следующий</button>
           </div>
@@ -75,7 +94,8 @@
         <div class="row">
           <center>
             <br><br>
-            <button class="btn btn-lg btn-warning" type="button">Узнать результат</button>
+            <button class="btn btn-lg btn-warning" type="button" id="result">Узнать результат</button>
+            <button class="btn btn-lg btn-primary" type="button" id="restart">Заново</button>
             <br><br>
           </center>
         </div>
@@ -86,7 +106,25 @@
             <br>
           </div>
         </div>
+
+        <div class="row">
+          <center>
+            <div class="col-md-2 col-md-offset-4">
+              <script type="text/javascript">
+                document.write(VK.Share.button(false,{type: "round", text: "Поделиться"}));
+              </script>
+              <br>
+            </div>
+            <div class="col-md-2 col-md-offset-6" style="margin-left: 0%">
+              <div class="fb-share-button" data-href="https://comments-analysis.herokuapp.com/" data-layout="button_count" data-size="small" data-mobile-iframe="true"><a class="fb-xfbml-parse-ignore" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fdevelopers.facebook.com%2Fdocs%2Fplugins%2F&amp;src=sdkpreparse">Поделиться</a>
+              </div>
+            </div>
+          </center>
+        </div>
       </div>
+
+
+
 
       <div class="footer">
         <p>Link</p>
