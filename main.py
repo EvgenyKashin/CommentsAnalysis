@@ -58,7 +58,7 @@ def predict():
 	if score == 0:
 		prediction_string = "Вы технарь!"
 	elif score == 1:
-		prediction_string = "Вы гумманитарий!"
+		prediction_string = "Вы гуманитарий!"
 	else:
 		prediction_string = "Не возможно понять, попробуйте добавить еще один комментарий!"
 

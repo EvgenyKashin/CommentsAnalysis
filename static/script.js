@@ -61,14 +61,15 @@ $(".col-xs-5 .btn-primary").on("click", function() {
 
 // on textarea input
 $(".form-control").on("input", function() {
-	$(".label-warning").text("");
+	$(".col-md-10 .label-warning").text("");
+	$("center .label-warning").text("");
 });
 
 // click on answer button
 $(".col-xs-6 .btn-primary").on("click", function() {
 	answer = $(".form-control").val();
 	if (countWords(answer) < 2 || answer.length < 5) {
-		$(".label-warning").text("Слишком короткий ответ");
+		$(".col-md-10 .label-warning").text("Слишком короткий ответ");
 	} else{
 		nextComment();
 		$(".form-control").val("");
@@ -115,6 +116,8 @@ $("#result").on("click", function() {
 			failure: resultFailure
 		};
 		$.ajax(request);
+	} else {
+		$("center .label-warning").text("Слишком мало комментариев");
 	}
 });
 
