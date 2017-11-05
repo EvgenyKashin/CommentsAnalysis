@@ -57,6 +57,7 @@ $(function() {
 // click on next button
 $(".col-xs-5 .btn-primary").on("click", function() {
 	nextComment();
+	ga('send', 'event', 'Comments', 'next');
 });
 
 // on textarea input
@@ -68,6 +69,7 @@ $(".form-control").on("input", function() {
 // click on answer button
 $(".col-xs-6 .btn-primary").on("click", function() {
 	answer = $(".form-control").val();
+	ga('send', 'event', 'Comments', 'answer', answer);
 	if (countWords(answer) < 2 || answer.length < 5) {
 		$(".col-md-10 .label-warning").text("Слишком короткий ответ");
 	} else{
@@ -106,16 +108,20 @@ function resultSuccess(data) {
 											image: "https://hsto.org/webt/ii/gi/pj/iigipj5qhjvi7g9ohwjqjjwuvws.jpeg",
 											url: "www.commentsanalysis.ru", description: shareText});
 		$(".col-md-offset-4").html(shareHtmlVK);
+		
+		ga('send', 'event', 'Comments', 'result', data[0]);
 	}
 	else {
 		$(".col-md-12 h3").text("Что то пошло не так, попробуйте позже(");
 		$(".col-md-offset-4").html('<script type="text/javascript">document.write(VK.Share.button(false,{type: "round", text: "Поделиться"}));</script>');
+		ga('send', 'event', 'Errors', 'result');
 	}
 }
 
 function resultFailure(data) {
 	$(".col-md-12 h3").text("Что то пошло не так, попробуйте позже(");
 	$(".col-md-offset-4").html(VK.Share.button(false,{type: "round", text: "Поделиться"}));
+	ga('send', 'event', 'Errors', 'result');
 }
 
 // click on result btn
@@ -153,4 +159,14 @@ $("#restart").on("click", function() {
 		$(".col-md-12 h4").text("");
 		$(".col-md-offset-4").html(VK.Share.button(false,{type: "round", text: "Поделиться"}));
 	}
+	
+	ga('send', 'event', 'Comments', 'restart');
+});
+
+$(".col-md-offset-4").on("click", function() {
+	ga('send', 'event', 'Share', 'VK');
+});
+
+$(".col-md-offset-6").on("click", function() {
+	ga('send', 'event', 'Share', 'FB');
 });

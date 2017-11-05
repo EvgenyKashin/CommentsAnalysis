@@ -52,7 +52,7 @@ def predict():
 		return "";
 
 	score, preds = fit_predict.predict_comments(data, with_separate=True)
-	score, preds = 0, [1 for i in data]
+	# score, preds = 0, [1 for i in data]
 	prediction_string = ""
 	preds_table = make_table(data, preds)
 
