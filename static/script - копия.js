@@ -92,30 +92,14 @@ function resultSuccess(data) {
 		$(".col-md-12 h3").text(data[0]);
 		$(".table").html(data[1]);
 		$(".col-md-12 h4").text("Зеленый - больше гуманитарный коммент, красный - технарский");
-		
-		shareText = "";
-		if (data[0] == "Вы технарь!") {
-			shareText = "Я технарь, а ты? Определи тип личности по твоим комментариям!";
-		}
-		else if (data[0] == "Вы гуманитарий!") {
-			shareText = "Я гуманитарий, а ты? Определи тип личности по твоим комментариям!";
-		} else {
-			shareText = "Определи тип личности по твоим комментариям!";
-		}
-		shareHtmlVK = VK.Share.button(false,{type: "round", text: "Поделиться", title: "Гуманитарии vs Технари", noparse: true,
-											image: "https://hsto.org/webt/ii/gi/pj/iigipj5qhjvi7g9ohwjqjjwuvws.jpeg",
-											url: "www.commentsanalysis.ru", description: shareText});
-		$(".col-md-offset-4").html(shareHtmlVK);
 	}
 	else {
 		$(".col-md-12 h3").text("Что то пошло не так, попробуйте позже(");
-		$(".col-md-offset-4").html('<script type="text/javascript">document.write(VK.Share.button(false,{type: "round", text: "Поделиться"}));</script>');
 	}
 }
 
 function resultFailure(data) {
 	$(".col-md-12 h3").text("Что то пошло не так, попробуйте позже(");
-	$(".col-md-offset-4").html(VK.Share.button(false,{type: "round", text: "Поделиться"}));
 }
 
 // click on result btn
@@ -151,6 +135,5 @@ $("#restart").on("click", function() {
 		$(".col-md-12 h3").text("");
 		$(".table").html("");
 		$(".col-md-12 h4").text("");
-		$(".col-md-offset-4").html(VK.Share.button(false,{type: "round", text: "Поделиться"}));
 	}
 });
