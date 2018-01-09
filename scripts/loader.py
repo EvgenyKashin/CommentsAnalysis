@@ -135,11 +135,15 @@ def parse_friends(friends):
              'id': f['id']} for f in friends]
 
 
-def download_posts(owner_id, token, max_iter=None, suffix='', save=True):
+def download_posts(owner_id, token, max_iter=None, suffix='', save=True,
+                   min_date_limit=None):
     posts_count = 0
     start_time = time.time()
 
     logger.info('Downloading posts from {}'.format(owner_id))
+    if min_date_limit:
+        logger.info('Min date limit is {}'.format(min_date_limit))
+
     result_posts = []
     post = get_posts(owner_id, token, 1)
     try:
@@ -158,6 +162,12 @@ def download_posts(owner_id, token, max_iter=None, suffix='', save=True):
         posts = get_posts(owner_id, token, 100, i * 100)
         posts = parse_posts(posts['response']['items'], owner_id)
         result_posts.extend(posts)
+
+        date = datetime.fromtimestamp(result_posts[-1]['date'])
+        if min_date_limit:
+            if date < min_date_limit:
+                break
+
         time.sleep(0.33)
 
     # filterig by date
@@ -409,7 +419,8 @@ def friends_comments_names(fr_com):
     return [f['user']['last_name'] for f in fr_com]
 
 
-def community_downloader(owner_id, with_users=True):
+def community_downloader(owner_id, with_users=True, with_comments=True,
+                         with_likes=True, max_iter=None, min_date_limit=None):
     token, user_id = get_saved_auth_params()
     if not token or not user_id:
         token, user_id = get_auth_params()
@@ -417,13 +428,15 @@ def community_downloader(owner_id, with_users=True):
     posts = None
     comments = None
     if not os.path.exists(posts_path.format(owner_id)):
-        posts = download_posts(owner_id, token)
+        posts = download_posts(owner_id, token, max_iter=max_iter,
+                               min_date_limit=min_date_limit)
     else:
         posts = read_posts(owner_id)
-    if not os.path.exists(comments_path.format(owner_id)):
-        comments = download_comments(posts, owner_id, token)
-    else:
-        comments = read_comments(owner_id)
+    if with_comments:
+        if not os.path.exists(comments_path.format(owner_id)):
+            comments = download_comments(posts, owner_id, token)
+        else:
+            comments = read_comments(owner_id)
     if not os.path.exists(users_path.format(owner_id)) and with_users:
         ok = False
         i = 0
