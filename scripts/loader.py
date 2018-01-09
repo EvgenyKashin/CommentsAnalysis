@@ -8,6 +8,7 @@ import logging
 import time
 import math
 import os
+import gzip
 
 APP_ID = '5298215'
 AUTH_FILE = 'auth'
@@ -37,11 +38,11 @@ user_fields = ['sex', 'bdate', 'universities', 'status',
                'can_see_audio', 'can_write_private_message']
 friend_fields = []
 
-posts_path = 'data/posts_{}.pkl'
-comments_path = 'data/comments_{}.pkl'
-users_path = 'data/users_{}.pkl'
-friends_path = 'data/friends_{}.pkl'
-frinds_comments_path = 'data/fr_com_{}_{}.pkl'
+posts_path = 'data/posts_{}.pkl.gz'
+comments_path = 'data/comments_{}.pkl.gz'
+users_path = 'data/users_{}.pkl.gz'
+friends_path = 'data/friends_{}.pkl.gz'
+frinds_comments_path = 'data/fr_com_{}_{}.pkl.gz'
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -167,7 +168,7 @@ def download_posts(owner_id, token, max_iter=None, suffix='', save=True):
 
     if save:
         filename = posts_path.format(owner_id)
-        with open(filename, 'wb') as f:
+        with gzip.open(filename, 'wb') as f:
             pickle.dump(result_posts, f)
 
     logger.info('{} posts from {} added'.format(len(result_posts),
@@ -192,7 +193,7 @@ def download_comments(posts, owner_id, token, max_iter=None, suffix='',
             logger.info('{:.2f}%'.format(j / len(posts_ids) * 100))
             if save:
                 filename = comments_path.format(owner_id)
-                with open(filename, 'wb') as f:
+                with gzip.open(filename, 'wb') as f:
                     pickle.dump(result_comments, f)
         j += 1
 
@@ -204,7 +205,7 @@ def download_comments(posts, owner_id, token, max_iter=None, suffix='',
             if comment.get('error', {}).get('error_code', 0) == 5:
                 if save:
                     filename = comments_path.format(owner_id)
-                    with open(filename, 'wb') as f:
+                    with gzip.open(filename, 'wb') as f:
                         pickle.dump(result_comments, f)
                         logger.info('Temporary saved {} comments'
                                     .format(len(result_comments)))
@@ -228,7 +229,7 @@ def download_comments(posts, owner_id, token, max_iter=None, suffix='',
 
     if save:
         filename = comments_path.format(owner_id)
-        with open(filename, 'wb') as f:
+        with gzip.open(filename, 'wb') as f:
             pickle.dump(result_comments, f)
 
     logger.info('{} comments from {} added'.format(len(result_comments),
@@ -269,7 +270,7 @@ def download_users(comments, token, owner_id, max_iter=None, suffix='',
 
     if save:
         filename = users_path.format(owner_id)
-        with open(filename, 'wb') as f:
+        with gzip.open(filename, 'wb') as f:
             pickle.dump(result_users, f)
 
     logger.info('{} users added'.format(len(result_users)))
@@ -304,7 +305,7 @@ def download_friends(user_id, token, max_iter=None, suffix='', save=True):
 
     if save:
         filename = friends_path.format(user_id)
-        with open(filename, 'wb') as f:
+        with gzip.open(filename, 'wb') as f:
             pickle.dump(result_friends, f)
 
     logger.info('{} friends of {} added'.format(len(result_friends),
@@ -319,7 +320,7 @@ def read_posts(owner_id, filename=None):
             filename = posts_path.format(owner_id)
         else:
             raise Exception('Wrong arguments')
-    with open(filename, 'rb') as f:
+    with gzip.open(filename, 'rb') as f:
         posts = pickle.load(f)
     logger.info('{} posts from {} readed'.format(len(posts), owner_id))
     return posts
@@ -331,7 +332,7 @@ def read_comments(owner_id, filename=None):
             filename = comments_path.format(owner_id)
         else:
             raise Exception('Wrong arguments')
-    with open(filename, 'rb') as f:
+    with gzip.open(filename, 'rb') as f:
         comments = pickle.load(f)
     logger.info('{} comments from {} readed'.format(len(comments), owner_id))
     return comments
@@ -343,7 +344,7 @@ def read_users(owner_id, filename=None):
             filename = users_path.format(owner_id)
         else:
             raise Exception('Wrong arguments')
-    with open(filename, 'rb') as f:
+    with gzip.open(filename, 'rb') as f:
         users = pickle.load(f)
     logger.info('{} users from {} readed'.format(len(users), owner_id))
     return users
@@ -355,7 +356,7 @@ def read_friends(user_id, filename=None):
             filename = friends_path.format(user_id)
         else:
             raise Exception('Wrong arguments')
-    with open(filename, 'rb') as f:
+    with gzip.open(filename, 'rb') as f:
         friends = pickle.load(f)
     logger.info('{} friends of {} readed'.format(len(friends), user_id))
     return friends
@@ -379,7 +380,7 @@ def friends_comments(user_id, community_id, save=True):
 
     if save:
         filename = frinds_comments_path.format(user_id, community_id)
-        with open(filename, 'wb') as f:
+        with gzip.open(filename, 'wb') as f:
             pickle.dump(friends_with_com, f)
 
     logger.info('{} friends commented in this community'
@@ -394,7 +395,7 @@ def read_friends_comments(user_id, community_id, filename=None):
             filename = frinds_comments_path.format(user_id, community_id)
         else:
             raise Exception('Wrong arguments')
-    with open(filename, 'rb') as f:
+    with gzip.open(filename, 'rb') as f:
         friends_comments = pickle.load(f)
     logger.info('{} friends comments readed'.format(len(friends_comments)))
     return friends_comments
