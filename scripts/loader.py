@@ -9,6 +9,7 @@ import time
 import math
 import os
 import gzip
+import shutil
 
 APP_ID = '5298215'
 AUTH_FILE = 'auth'
@@ -32,6 +33,8 @@ auth_url = "https://oauth.vk.com/authorize?client_id={}&scope=wall&"\
            "display=page&response_type=token"
 friends_url = "https://api.vk.com/method/friends.get?user_id={}&"\
               "&access_token={}&fields={}&count={}&offset={}&v=5.52"
+likes_url = "https://api.vk.com/method/likes.getList?type=post&owner_id={}&"\
+            "item_id={}&access_token={}&v=5.52&count={}&offset={}"
 user_fields = ['sex', 'bdate', 'universities', 'status',
                'counters', 'occupation', 'relation', 'personal', 'activities',
                'interests', 'music', 'movies', 'books', 'can_see_all_posts',
@@ -43,6 +46,9 @@ comments_path = 'data/comments_{}.pkl.gz'
 users_path = 'data/users_{}.pkl.gz'
 friends_path = 'data/friends_{}.pkl.gz'
 frinds_comments_path = 'data/fr_com_{}_{}.pkl.gz'
+likes_path = 'data/likes_{}.pkl.gz'
+imgs_path = 'data/imgs/{}_{}.jpg'
+
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -104,7 +110,6 @@ def get_users(user_ids, token, fields):
         users = json.loads(r.text)['response']
     except Exception as ex:
         print("Error: {}".format(r.text))
-        print(r)
         raise ex
     return users
 
@@ -115,9 +120,15 @@ def get_friends(user_id, token, count=100, offset=0, fields=friend_fields):
     return json.loads(r.text)
 
 
+def get_likes(owner_id, post_id, token, count=5, offset=0):
+    r = requests.get(likes_url.format(owner_id, post_id, token, count,
+                                         offset))
+    return json.loads(r.text)
+
+
 def parse_posts(posts, owner_id):
     return [{'post_id': p['id'], 'text': p['text'],
-             'likes': p['likes']['count'],
+             'likes': p['likes']['count'], 'attachments': p.get('attachments'),
              'date': p['date'], 'owner_id': owner_id} for p in posts]
 
 
@@ -156,8 +167,9 @@ def download_posts(owner_id, token, max_iter=None, suffix='', save=True,
     if max_iter:
         iteration = min(max_iter, iteration)
 
+    s = iteration // 10
     for i in range(iteration):
-        if i % 20 == 0:
+        if i % s == 0:
             logger.info('{:.2f}%'.format(i / iteration * 100))
         posts = get_posts(owner_id, token, 100, i * 100)
         posts = parse_posts(posts['response']['items'], owner_id)
@@ -198,8 +210,9 @@ def download_comments(posts, owner_id, token, max_iter=None, suffix='',
     result_comments = []
 
     j = 0
+    s = len(posts_ids) // 10
     for post_id in posts_ids:
-        if j % 500 == 0:
+        if j % s == 0:
             logger.info('{:.2f}%'.format(j / len(posts_ids) * 100))
             if save:
                 filename = comments_path.format(owner_id)
@@ -260,8 +273,9 @@ def download_users(comments, token, owner_id, max_iter=None, suffix='',
     if max_iter:
         iteration = min(max_iter, iteration)
 
+    s = iteration // 10
     for i in range(iteration):
-        if i % 100 == 0:
+        if i % s == 0:
             logger.info('{:.2f}%'.format(i / iteration * 100))
         if i == iteration - 1:
             ids = user_ids[10 * i:]
@@ -305,8 +319,9 @@ def download_friends(user_id, token, max_iter=None, suffix='', save=True):
     if max_iter:
         iteration = min(max_iter, iteration)
 
+    s = iteration // 10
     for i in range(iteration):
-        if i % 1 == 0:
+        if i % s == 0:
             logger.info('{:.2f}%'.format(i / iteration * 100))
         friends = get_friends(user_id, token, 100, i * 100)
         friends = parse_friends(friends['response']['items'])
@@ -322,6 +337,97 @@ def download_friends(user_id, token, max_iter=None, suffix='', save=True):
                 user_id))
     logger.debug('Total time: {} sec'.format(round(time.time() - start_time)))
     return result_friends
+
+
+def download_likes(posts, owner_id, token, max_iter=None, suffix='',
+                      save=True):
+    likes_count = 0
+    start_time = time.time()
+    posts_ids = [p['post_id'] for p in posts]
+
+    logger.info('Downloading likes from {}'.format(owner_id))
+    logger.info('{} total posts'.format(len(posts_ids)))
+    result_likes = {}
+
+    j = 0
+    s = len(posts_ids) // 10
+    for post_id in posts_ids:
+        if j % s == 0:
+            logger.info('{:.3f}%'.format(j / len(posts_ids) * 100))
+            if save:
+                filename = likes_path.format(owner_id)
+                with gzip.open(filename, 'wb') as f:
+                    pickle.dump(result_likes, f)
+        j += 1
+
+        like = get_likes(owner_id, post_id, token, 1)
+        try:
+            likes_count = int(like['response']['count'])
+        except:
+            logger.error(like)
+            if like.get('error', {}).get('error_code', 0) == 5:
+                if save:
+                    filename = likes_path.format(owner_id)
+                    with gzip.open(filename, 'wb') as f:
+                        pickle.dump(result_likes, f)
+                        logger.info('Temporary saved {} likes'
+                                    .format(len(result_likes)))
+                token, __ = get_auth_params()
+            continue
+        iteration = math.ceil(likes_count / 1000)
+        if max_iter:
+            iteration = min(max_iter, iteration)
+        
+        post_likes = []
+        for i in range(iteration + 1):
+            try:
+                likes = get_likes(owner_id, post_id, token, 1000, i * 1000)
+                likes = likes['response']['items']
+            except:
+                logger.error(likes)
+                time.sleep(0.33)
+                continue
+            post_likes.extend(likes)
+            time.sleep(0.33)
+        result_likes[post_id] = post_likes
+
+    if save:
+        filename = likes_path.format(owner_id)
+        with gzip.open(filename, 'wb') as f:
+            pickle.dump(result_likes, f)
+
+    logger.info('{} posts with likes from {} added'.format(len(result_likes),
+                owner_id))
+    logger.debug('Total time: {} sec'.format(round(time.time() - start_time)))
+    return result_likes
+
+
+def download_attachments(posts, owner_id):
+    logger.info('Downloading attachments from {}'.format(owner_id))
+    logger.info('{} total posts'.format(len(posts)))
+    start_time = time.time()
+    
+    j = 0
+    s = len(posts) // 10
+    for p in posts:
+        if j % s == 0:
+            logger.info('{:.2f}%'.format(j / len(posts) * 100))
+        j += 1
+        
+        if not p.get('attachments'):
+            continue
+        for i, att in enumerate(p['attachments']):
+            if att['type'] == 'photo':
+                r = requests.get(att['photo']['photo_604'], stream=True)
+                if r.status_code == 200:
+                    with open(imgs_path.format(p['post_id'], i), 'wb') as f:
+                        shutil.copyfileobj(r.raw, f)
+                else:
+                    logger.error('Error {} with loading {}'.format(r.status_code, att['photo']['photo_604']))
+            else:
+                pass # todo for doc(gif), video and link
+    logger.info('Attachments from {} saved'.format(owner_id))
+    logger.debug('Total time: {} sec'.format(round(time.time() - start_time)))
 
 
 def read_posts(owner_id, filename=None):
@@ -372,6 +478,18 @@ def read_friends(user_id, filename=None):
     return friends
 
 
+def read_likes(owner_id, filename=None):
+    if not filename:
+        if owner_id:
+            filename = likes_path.format(owner_id)
+        else:
+            raise Exception('Wrong arguments')
+    with gzip.open(filename, 'rb') as f:
+        likes = pickle.load(f)
+    logger.info('{} posts with likes from {} readed'.format(len(likes), owner_id))
+    return likes
+
+
 def friends_comments(user_id, community_id, save=True):
     start_time = time.time()
     logger.info('Searching comments in {} from friends of {}'
@@ -419,24 +537,37 @@ def friends_comments_names(fr_com):
     return [f['user']['last_name'] for f in fr_com]
 
 
-def community_downloader(owner_id, with_users=True, with_comments=True,
-                         with_likes=True, max_iter=None, min_date_limit=None):
+def community_downloader(owner_id, with_users=False, with_comments=False,
+                         with_likes=False, with_attachments=False, max_iter=None,
+                         min_date_limit=None):
     token, user_id = get_saved_auth_params()
     if not token or not user_id:
         token, user_id = get_auth_params()
 
     posts = None
     comments = None
+
     if not os.path.exists(posts_path.format(owner_id)):
         posts = download_posts(owner_id, token, max_iter=max_iter,
                                min_date_limit=min_date_limit)
     else:
         posts = read_posts(owner_id)
+
     if with_comments:
         if not os.path.exists(comments_path.format(owner_id)):
             comments = download_comments(posts, owner_id, token)
         else:
             comments = read_comments(owner_id)
+
+    if with_likes:
+        if not os.path.exists(likes_path.format(owner_id)):
+            likes = download_likes(posts, owner_id, token)
+        else:
+            likes = read_likes(owner_id)
+
+    if with_attachments:
+        download_attachments(posts, owner_id)
+
     if not os.path.exists(users_path.format(owner_id)) and with_users:
         ok = False
         i = 0
@@ -476,4 +607,5 @@ if __name__ == '__main__':
     # friends_comments(my_id, vrn_id)
     # print(read_friends_comments(my_id, vrn_id))
     # print(read_friends_comments('63387758', vrn_id))
-    pass
+    community_downloader(ekb_id, with_users=True, with_attachments=True, with_comments=True,
+                         with_likes=True, min_date_limit=datetime(2018, 1, 5))
