@@ -170,7 +170,7 @@ def download_posts(owner_id, token, max_iter=None, suffix='', save=True,
     s = iteration // 10
     for i in range(iteration):
         if i % s == 0:
-            logger.info('{:.2f}%'.format(i / iteration * 100))
+            logger.info('{:.1f}%'.format(i / iteration * 100))
         posts = get_posts(owner_id, token, 100, i * 100)
         posts = parse_posts(posts['response']['items'], owner_id)
         result_posts.extend(posts)
@@ -213,7 +213,7 @@ def download_comments(posts, owner_id, token, max_iter=None, suffix='',
     s = len(posts_ids) // 10
     for post_id in posts_ids:
         if j % s == 0:
-            logger.info('{:.2f}%'.format(j / len(posts_ids) * 100))
+            logger.info('{:.1f}%'.format(j / len(posts_ids) * 100))
             if save:
                 filename = comments_path.format(owner_id)
                 with gzip.open(filename, 'wb') as f:
@@ -276,7 +276,7 @@ def download_users(comments, token, owner_id, max_iter=None, suffix='',
     s = iteration // 10
     for i in range(iteration):
         if i % s == 0:
-            logger.info('{:.2f}%'.format(i / iteration * 100))
+            logger.info('{:.1f}%'.format(i / iteration * 100))
         if i == iteration - 1:
             ids = user_ids[10 * i:]
         else:
@@ -322,7 +322,7 @@ def download_friends(user_id, token, max_iter=None, suffix='', save=True):
     s = iteration // 10
     for i in range(iteration):
         if i % s == 0:
-            logger.info('{:.2f}%'.format(i / iteration * 100))
+            logger.info('{:.1f}%'.format(i / iteration * 100))
         friends = get_friends(user_id, token, 100, i * 100)
         friends = parse_friends(friends['response']['items'])
         result_friends.extend(friends)
@@ -353,7 +353,7 @@ def download_likes(posts, owner_id, token, max_iter=None, suffix='',
     s = len(posts_ids) // 10
     for post_id in posts_ids:
         if j % s == 0:
-            logger.info('{:.3f}%'.format(j / len(posts_ids) * 100))
+            logger.info('{:.1f}%'.format(j / len(posts_ids) * 100))
             if save:
                 filename = likes_path.format(owner_id)
                 with gzip.open(filename, 'wb') as f:
@@ -411,7 +411,7 @@ def download_attachments(posts, owner_id):
     s = len(posts) // 10
     for p in posts:
         if j % s == 0:
-            logger.info('{:.2f}%'.format(j / len(posts) * 100))
+            logger.info('{:.1f}%'.format(j / len(posts) * 100))
         j += 1
         
         if not p.get('attachments'):
